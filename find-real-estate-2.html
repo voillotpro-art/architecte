@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIND — Real Estate</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #f5f0eb;
+  --dark: #0a0a0a;
+  --text: #1a1a1a;
+  --text-light: #6b6560;
+  --accent: #c4542a;
+  --cream: #f5f0eb;
+  --white: #fefcfa;
+}
+
+html { scroll-behavior: auto; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ========== NAVBAR ========== */
+.navbar {
+  position: fixed;
+  top: 0; left: 0; width: 100%;
+  z-index: 1000;
+  padding: 20px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background 0.4s, backdrop-filter 0.4s;
+}
+.navbar.scrolled {
+  background: rgba(245, 240, 235, 0.85);
+  backdrop-filter: blur(20px);
+}
+.nav-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px; font-weight: 800;
+  letter-spacing: 3px; color: var(--text);
+}
+.nav-logo span { color: var(--accent); }
+.nav-links { display: flex; gap: 32px; list-style: none; }
+.nav-links a {
+  text-decoration: none; color: var(--text);
+  font-size: 14px; font-weight: 500;
+  letter-spacing: 0.3px; transition: color 0.3s;
+}
+.nav-links a:hover { color: var(--accent); }
+.nav-signin {
+  background: var(--dark); color: white; border: none;
+  padding: 10px 24px; border-radius: 8px;
+  font-size: 14px; font-weight: 500; cursor: pointer;
+  transition: transform 0.3s, background 0.3s;
+}
+.nav-signin:hover { transform: translateY(-1px); background: #222; }
+
+/* ========== HERO PINNED SECTION ========== */
+.hero-wrapper {
+  position: relative;
+  height: 450vh; /* lots of scroll room */
+}
+
+.hero-pinned {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Sky background */
+.hero-sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    #b8d4ed 0%,
+    #8dbce0 25%,
+    #7ab3db 40%,
+    #9fc5e3 55%,
+    #d4c5b0 80%,
+    #e8c9a0 100%
+  );
+  z-index: 0;
+}
+
+/* Painted clouds in sky */
+.sky-cloud {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.5);
+  filter: blur(40px);
+  z-index: 0;
+}
+.sky-cloud-1 { width: 600px; height: 120px; top: 10%; left: -5%; opacity: 0.4; }
+.sky-cloud-2 { width: 400px; height: 80px; top: 15%; right: 5%; opacity: 0.3; }
+.sky-cloud-3 { width: 500px; height: 100px; top: 25%; left: 20%; opacity: 0.25; }
+.sky-cloud-4 { width: 300px; height: 70px; top: 5%; right: 25%; opacity: 0.35; }
+
+/* Hero content (text + button) */
+.hero-content {
+  position: absolute;
+  top: 18%;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 10;
+  width: 100%;
+  padding: 0 24px;
+}
+.hero-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(40px, 5.5vw, 76px);
+  font-weight: 700; line-height: 1.1;
+  margin-bottom: 16px; color: var(--text);
+}
+.hero-subtitle {
+  font-size: 17px; color: var(--text-light);
+  margin-bottom: 32px; font-weight: 400;
+}
+.hero-subtitle strong { font-weight: 600; color: var(--text); }
+.hero-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--dark); color: white;
+  padding: 14px 28px; border-radius: 10px;
+  text-decoration: none; font-size: 15px; font-weight: 500;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.hero-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.2); }
+.hero-btn svg { width: 16px; height: 16px; }
+
+/* House image */
+.hero-house {
+  position: absolute;
+  bottom: -5%;
+  left: 50%;
+  transform: translateX(-50%) scale(1);
+  transform-origin: center bottom;
+  z-index: 5;
+  width: clamp(380px, 52vw, 700px);
+  will-change: transform, opacity;
+}
+.hero-house img {
+  width: 100%; height: auto; display: block;
+  filter: drop-shadow(0 20px 60px rgba(0,0,0,0.15));
+}
+
+/* Volumetric clouds around house */
+.cloud-layer {
+  position: absolute;
+  z-index: 6;
+  pointer-events: none;
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+.cloud-puff {
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+  filter: blur(25px);
+}
+
+/* Bottom cloud bank */
+.cloud-bottom {
+  bottom: 0; left: 0; width: 100%; height: 40%;
+}
+.cloud-bottom .cp1 { width: 500px; height: 160px; bottom: -30px; left: 5%; opacity: 0.95; }
+.cloud-bottom .cp2 { width: 600px; height: 200px; bottom: -50px; left: 25%; opacity: 0.9; }
+.cloud-bottom .cp3 { width: 450px; height: 150px; bottom: -20px; left: 55%; opacity: 0.95; }
+.cloud-bottom .cp4 { width: 550px; height: 180px; bottom: -60px; left: 70%; opacity: 0.85; }
+.cloud-bottom .cp5 { width: 400px; height: 130px; bottom: 10px; left: 40%; opacity: 0.9; }
+.cloud-bottom .cp6 { width: 350px; height: 120px; bottom: 40px; left: 10%; opacity: 0.7; }
+.cloud-bottom .cp7 { width: 300px; height: 100px; bottom: 50px; left: 65%; opacity: 0.65; }
+.cloud-bottom .cp8 { width: 500px; height: 140px; bottom: -40px; left: -5%; opacity: 0.9; }
+
+/* Side clouds */
+.cloud-left {
+  bottom: 10%; left: 0; width: 35%; height: 50%;
+}
+.cloud-left .cp1 { width: 350px; height: 140px; bottom: 20%; left: -10%; opacity: 0.7; }
+.cloud-left .cp2 { width: 280px; height: 100px; bottom: 35%; left: 5%; opacity: 0.5; }
+.cloud-left .cp3 { width: 400px; height: 120px; bottom: 10%; left: -5%; opacity: 0.8; }
+
+.cloud-right {
+  bottom: 10%; right: 0; width: 35%; height: 50%;
+}
+.cloud-right .cp1 { width: 350px; height: 140px; bottom: 20%; right: -10%; opacity: 0.7; }
+.cloud-right .cp2 { width: 280px; height: 100px; bottom: 35%; right: 5%; opacity: 0.5; }
+.cloud-right .cp3 { width: 400px; height: 120px; bottom: 10%; right: -5%; opacity: 0.8; }
+
+/* Top clouds (appear later) */
+.cloud-top {
+  top: 0; left: 0; width: 100%; height: 40%;
+}
+.cloud-top .cp1 { width: 600px; height: 180px; top: -40px; left: 10%; opacity: 0.6; }
+.cloud-top .cp2 { width: 500px; height: 150px; top: -20px; left: 50%; opacity: 0.5; }
+.cloud-top .cp3 { width: 400px; height: 120px; top: 30px; left: 30%; opacity: 0.4; }
+
+/* FIND watermark text behind house */
+.find-watermark {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 4;
+  text-align: center;
+  opacity: 0;
+  will-change: opacity, transform;
+}
+.find-watermark-text {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(100px, 18vw, 280px);
+  font-weight: 900;
+  letter-spacing: 10px;
+  color: rgba(255,255,255,0.35);
+  line-height: 1;
+  text-shadow: 0 0 80px rgba(255,255,255,0.2);
+}
+.find-watermark-sub {
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(20px, 3vw, 40px);
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 6px;
+  margin-top: 4px;
+}
+
+/* FIND clipping mask text (final state) */
+.find-clip {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 12;
+  text-align: center;
+  opacity: 0;
+  will-change: opacity;
+}
+.find-clip-text {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(100px, 18vw, 280px);
+  font-weight: 900;
+  letter-spacing: 10px;
+  line-height: 1;
+  background-image: url('https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1200&q=80');
+  background-size: cover;
+  background-position: center 30%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.find-clip-sub {
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(20px, 3vw, 40px);
+  color: var(--text-light);
+  letter-spacing: 6px;
+  margin-top: 4px;
+}
+
+/* ========== REST OF SITE ========== */
+
+/* YOUR LIFE'S CHANGING */
+.life-section {
+  position: relative;
+  padding: 120px 48px;
+  background: var(--white);
+  overflow: hidden;
+}
+.life-grid {
+  max-width: 1200px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 60px; align-items: center;
+}
+.life-image {
+  position: relative; border-radius: 16px;
+  overflow: hidden; height: 500px;
+}
+.life-image img { width: 100%; height: 100%; object-fit: cover; }
+.life-text h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(32px, 4vw, 48px);
+  font-weight: 700; line-height: 1.2; margin-bottom: 20px;
+}
+.life-text p {
+  font-size: 17px; line-height: 1.7; color: var(--text-light); max-width: 480px;
+}
+.life-text .highlight { color: var(--accent); font-weight: 600; }
+
+/* CHEVRONS */
+.chevrons-section { padding: 100px 48px 120px; background: var(--white); text-align: center; }
+.chevrons-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(32px, 4vw, 52px); font-weight: 700; margin-bottom: 12px;
+}
+.chevrons-title .light { color: var(--text-light); font-weight: 400; }
+.chevrons-container {
+  display: flex; justify-content: center; gap: 8px;
+  margin: 48px auto 40px; max-width: 900px;
+}
+.chevron {
+  width: 200px; height: 280px;
+  clip-path: polygon(0 0, 75% 0, 100% 50%, 75% 100%, 0 100%, 25% 50%);
+  overflow: hidden; opacity: 0; transform: translateX(-40px);
+}
+.chevron:first-child { clip-path: polygon(0 0, 75% 0, 100% 50%, 75% 100%, 0 100%); }
+.chevron img { width: 100%; height: 100%; object-fit: cover; }
+.chevrons-description {
+  max-width: 520px; margin: 0 auto;
+  font-size: 16px; line-height: 1.7; color: var(--text-light);
+}
+.chevrons-description .highlight { color: var(--accent); font-weight: 600; }
+
+/* REWIRED */
+.rewired-section { padding: 120px 48px; background: var(--bg); }
+.rewired-grid {
+  max-width: 1200px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 80px; align-items: start;
+}
+.rewired-left h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 700; line-height: 1.15; margin-bottom: 32px;
+}
+.rewired-left h2 .italic { font-style: italic; color: var(--accent); }
+.rewired-divider { width: 60px; height: 4px; background: var(--dark); border-radius: 4px; }
+.rewired-right { padding-top: 20px; }
+.rewired-right .steps-label {
+  font-size: 13px; font-weight: 600; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--text-light); margin-bottom: 32px;
+}
+.step { margin-bottom: 32px; opacity: 0; transform: translateY(24px); }
+.step h3 { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+.step p { font-size: 15px; color: var(--text-light); line-height: 1.6; }
+
+/* OWN IT */
+.own-section { padding: 100px 48px 120px; background: var(--white); }
+.own-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(32px, 4.5vw, 52px);
+  font-weight: 700; max-width: 1200px; margin: 0 auto 48px;
+}
+.own-title .light { color: var(--text-light); font-weight: 400; }
+.own-grid {
+  max-width: 1200px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+}
+.own-image {
+  border-radius: 16px; overflow: hidden; height: 420px;
+  opacity: 0; transform: translateY(40px);
+}
+.own-image img {
+  width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s;
+}
+.own-image:hover img { transform: scale(1.03); }
+.own-description {
+  max-width: 1200px; margin: 32px auto 0;
+  font-size: 16px; line-height: 1.7; color: var(--text-light);
+}
+
+/* TESTIMONIALS */
+.testimonials-section { padding: 120px 48px; background: var(--bg); }
+.testimonials-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(32px, 4vw, 48px);
+  font-weight: 700; max-width: 1200px; margin: 0 auto 60px;
+}
+.testimonials-title .light { color: var(--text-light); font-weight: 400; }
+.testimonial-card {
+  max-width: 1200px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 48px; align-items: center;
+}
+.testimonial-image { border-radius: 16px; overflow: hidden; height: 400px; }
+.testimonial-image img { width: 100%; height: 100%; object-fit: cover; }
+.testimonial-quote-mark {
+  font-family: 'Playfair Display', serif;
+  font-size: 120px; color: var(--accent);
+  opacity: 0.2; line-height: 0.6; margin-bottom: 16px;
+}
+.testimonial-text {
+  font-size: 17px; line-height: 1.8; color: var(--text);
+  font-style: italic; margin-bottom: 24px;
+}
+.testimonial-author { font-weight: 600; font-size: 15px; }
+.testimonial-role { font-size: 13px; color: var(--text-light); }
+
+/* SERVICES (DARK) */
+.services-section {
+  background: var(--dark); color: white;
+  padding: 120px 48px; position: relative; overflow: hidden;
+}
+.services-label {
+  font-size: 12px; font-weight: 600; letter-spacing: 3px;
+  text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 8px;
+}
+.services-sublabel {
+  font-size: 11px; color: rgba(255,255,255,0.25);
+  letter-spacing: 1px; margin-bottom: 48px;
+}
+.services-heading {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(32px, 4vw, 48px); font-weight: 700;
+  text-align: center; margin-bottom: 64px;
+}
+.service-item {
+  max-width: 1100px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr auto 1fr;
+  gap: 40px; align-items: center;
+  padding: 40px 0; border-top: 1px solid rgba(255,255,255,0.1);
+  opacity: 0; transform: translateY(30px);
+}
+.service-item:last-of-type { border-bottom: 1px solid rgba(255,255,255,0.1); }
+.service-desc {
+  font-size: 14px; line-height: 1.7;
+  color: rgba(255,255,255,0.6); max-width: 320px;
+}
+.service-desc .number {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 50%; font-size: 12px; margin-right: 12px;
+  color: rgba(255,255,255,0.5); vertical-align: middle;
+}
+.service-name {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(48px, 7vw, 90px); font-weight: 700;
+  text-decoration: underline; text-decoration-thickness: 2px;
+  text-underline-offset: 8px;
+}
+.service-arrow { display: flex; align-items: center; justify-content: flex-end; }
+.service-arrow svg {
+  width: 48px; height: 48px; stroke: rgba(255,255,255,0.5);
+  transition: stroke 0.3s, transform 0.3s;
+}
+.service-item:hover .service-arrow svg { stroke: white; transform: translateX(8px); }
+.services-cta {
+  max-width: 1100px; margin: 64px auto 0; padding-top: 48px;
+}
+.services-cta p {
+  font-size: 18px; line-height: 1.6;
+  color: rgba(255,255,255,0.7); margin-bottom: 24px;
+}
+.services-cta p strong { color: white; font-weight: 600; }
+.services-cta a {
+  display: inline-flex; align-items: center; gap: 8px;
+  color: white; font-size: 15px; font-weight: 600;
+  text-decoration: none; border-bottom: 2px solid var(--accent);
+  padding-bottom: 4px; transition: gap 0.3s;
+}
+.services-cta a:hover { gap: 14px; }
+
+/* BLOG */
+.blog-section { padding: 120px 48px; background: var(--white); }
+.blog-header {
+  max-width: 1200px; margin: 0 auto 48px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.blog-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(28px, 3.5vw, 40px); font-weight: 700;
+}
+.blog-more {
+  font-size: 14px; color: var(--accent); text-decoration: none;
+  font-weight: 600; display: flex; align-items: center; gap: 6px; transition: gap 0.3s;
+}
+.blog-more:hover { gap: 12px; }
+.blog-grid {
+  max-width: 1200px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
+}
+.blog-card { opacity: 0; transform: translateY(30px); }
+.blog-card-image {
+  border-radius: 14px; overflow: hidden; height: 280px; margin-bottom: 20px;
+}
+.blog-card-image img {
+  width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s;
+}
+.blog-card:hover .blog-card-image img { transform: scale(1.04); }
+.blog-card-date { font-size: 13px; color: var(--text-light); margin-bottom: 8px; }
+.blog-card h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px; font-weight: 700; margin-bottom: 10px; line-height: 1.3;
+}
+.blog-card p { font-size: 14px; color: var(--text-light); line-height: 1.6; margin-bottom: 16px; }
+.blog-read-more {
+  font-size: 14px; font-weight: 600; color: var(--text); text-decoration: none;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border: 1px solid var(--text); border-radius: 8px;
+  transition: background 0.3s, color 0.3s;
+}
+.blog-read-more:hover { background: var(--dark); color: white; }
+
+/* FOOTER */
+.footer { background: var(--dark); color: white; padding: 80px 48px 40px; }
+.footer-top {
+  max-width: 1200px; margin: 0 auto;
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 48px; margin-bottom: 64px;
+}
+.footer-brand .footer-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 32px; font-weight: 800; letter-spacing: 3px; margin-bottom: 16px;
+}
+.footer-brand p { font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.7; max-width: 300px; }
+.footer-col h4 {
+  font-size: 13px; font-weight: 600; letter-spacing: 2px;
+  text-transform: uppercase; margin-bottom: 20px; color: rgba(255,255,255,0.4);
+}
+.footer-col a {
+  display: block; color: rgba(255,255,255,0.7); text-decoration: none;
+  font-size: 14px; margin-bottom: 12px; transition: color 0.3s;
+}
+.footer-col a:hover { color: white; }
+.footer-bottom {
+  max-width: 1200px; margin: 0 auto; padding-top: 32px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  display: flex; justify-content: space-between;
+  font-size: 13px; color: rgba(255,255,255,0.35);
+}
+
+/* REVEAL */
+.reveal { opacity: 0; transform: translateY(40px); }
+.reveal.active {
+  opacity: 1; transform: translateY(0);
+  transition: opacity 0.8s cubic-bezier(0.22,1,0.36,1), transform 0.8s cubic-bezier(0.22,1,0.36,1);
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .navbar { padding: 16px 24px; }
+  .nav-links { display: none; }
+  .hero-house { width: 90vw; }
+  .life-grid, .rewired-grid, .own-grid, .testimonial-card, .blog-grid, .footer-top {
+    grid-template-columns: 1fr;
+  }
+  .service-item { grid-template-columns: 1fr; gap: 16px; text-align: center; }
+  .service-desc { max-width: 100%; }
+  .chevrons-container { flex-wrap: wrap; }
+  .chevron { width: 140px; height: 200px; }
+  section, .life-section, .chevrons-section, .rewired-section, .own-section,
+  .testimonials-section, .services-section, .blog-section {
+    padding-left: 24px !important; padding-right: 24px !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+  <div class="nav-logo">F<span>I</span>ND</div>
+  <ul class="nav-links">
+    <li><a href="#">Search</a></li>
+    <li><a href="#">Agents</a></li>
+    <li><a href="#">Aim</a></li>
+    <li><a href="#">Paperwork</a></li>
+    <li><a href="#">Resources</a></li>
+    <li><a href="#">About</a></li>
+  </ul>
+  <button class="nav-signin">Sign In</button>
+</nav>
+
+<!-- ========== HERO PINNED SECTION ========== -->
+<div class="hero-wrapper" id="heroWrapper">
+  <div class="hero-pinned" id="heroPinned">
+
+    <!-- Sky -->
+    <div class="hero-sky">
+      <div class="sky-cloud sky-cloud-1"></div>
+      <div class="sky-cloud sky-cloud-2"></div>
+      <div class="sky-cloud sky-cloud-3"></div>
+      <div class="sky-cloud sky-cloud-4"></div>
+    </div>
+
+    <!-- Hero text -->
+    <div class="hero-content" id="heroContent">
+      <h1 class="hero-title">Find What Moves You</h1>
+      <p class="hero-subtitle">Expert agents. <strong>Real guidance.</strong> A clear path to find what's next.</p>
+      <a href="#" class="hero-btn">
+        Find Properties
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+
+    <!-- House -->
+    <div class="hero-house" id="heroHouse">
+      <img src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=900&q=80" alt="Modern luxury house" />
+    </div>
+
+    <!-- FIND watermark (outline, behind house) -->
+    <div class="find-watermark" id="findWatermark">
+      <div class="find-watermark-text">FIND</div>
+      <div class="find-watermark-sub">Real Estate</div>
+    </div>
+
+    <!-- FIND clip text (final state, in front) -->
+    <div class="find-clip" id="findClip">
+      <div class="find-clip-text">FIND</div>
+      <div class="find-clip-sub">Real Estate</div>
+    </div>
+
+    <!-- Volumetric clouds -->
+    <div class="cloud-layer cloud-bottom" id="cloudBottom">
+      <div class="cloud-puff cp1"></div>
+      <div class="cloud-puff cp2"></div>
+      <div class="cloud-puff cp3"></div>
+      <div class="cloud-puff cp4"></div>
+      <div class="cloud-puff cp5"></div>
+      <div class="cloud-puff cp6"></div>
+      <div class="cloud-puff cp7"></div>
+      <div class="cloud-puff cp8"></div>
+    </div>
+    <div class="cloud-layer cloud-left" id="cloudLeft">
+      <div class="cloud-puff cp1"></div>
+      <div class="cloud-puff cp2"></div>
+      <div class="cloud-puff cp3"></div>
+    </div>
+    <div class="cloud-layer cloud-right" id="cloudRight">
+      <div class="cloud-puff cp1"></div>
+      <div class="cloud-puff cp2"></div>
+      <div class="cloud-puff cp3"></div>
+    </div>
+    <div class="cloud-layer cloud-top" id="cloudTop">
+      <div class="cloud-puff cp1"></div>
+      <div class="cloud-puff cp2"></div>
+      <div class="cloud-puff cp3"></div>
+    </div>
+  </div>
+</div>
+
+<!-- YOUR LIFE'S CHANGING -->
+<section class="life-section">
+  <div class="life-grid">
+    <div class="life-image reveal">
+      <img src="https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=800&q=80" alt="City skyline" />
+    </div>
+    <div class="life-text reveal" style="transition-delay: 0.15s;">
+      <h2>Your life's changing. Don't just find a place — find what's next.</h2>
+      <p>We help you move forward with clarity, confidence, and <span class="highlight">the right agent by your side.</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- CHEVRONS -->
+<section class="chevrons-section">
+  <h2 class="chevrons-title reveal">This isn't just <span class="light">about real estate.</span></h2>
+  <div class="chevrons-container" id="chevronsContainer">
+    <div class="chevron"><img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=80" alt="Interior" /></div>
+    <div class="chevron"><img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=80" alt="House" /></div>
+    <div class="chevron"><img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&q=80" alt="Modern home" /></div>
+    <div class="chevron"><img src="https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=400&q=80" alt="Architecture" /></div>
+  </div>
+  <p class="chevrons-description reveal">
+    It's about identity. Progress. Getting unstuck. You're not just looking for a place. <span class="highlight">You're looking for alignment.</span> That's what we help you find.
+  </p>
+</section>
+
+<!-- REWIRED -->
+<section class="rewired-section">
+  <div class="rewired-grid">
+    <div class="rewired-left reveal">
+      <h2>Real Estate,<br><span class="italic">Rewired.</span></h2>
+      <div class="rewired-divider"></div>
+    </div>
+    <div class="rewired-right">
+      <div class="steps-label">Steps:</div>
+      <div class="step"><h3>Talk to a Real Human.</h3><p>We match you with an expert who actually listens.</p></div>
+      <div class="step"><h3>Get Clarity.</h3><p>We define what you really need, not just what's available.</p></div>
+      <div class="step"><h3>Move Forward.</h3><p>We find what fits — and make it happen.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- OWN IT -->
+<section class="own-section">
+  <h2 class="own-title reveal">Don't Rent Your Career. <span class="light">Own It.</span></h2>
+  <div class="own-grid">
+    <div class="own-image"><img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=700&q=80" alt="Agent" /></div>
+    <div class="own-image"><img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=700&q=80" alt="Aerial" /></div>
+  </div>
+  <p class="own-description reveal">At FIND, our agents don't just work for the brand — they own a part of it. We believe alignment leads to better outcomes for everyone.</p>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials-section">
+  <h2 class="testimonials-title reveal">Don't Take <span class="light">Our Word for It.</span></h2>
+  <div class="testimonial-card reveal">
+    <div class="testimonial-image"><img src="https://images.unsplash.com/photo-1573497019236-17f8177b81e8?w=700&q=80" alt="Clients" /></div>
+    <div class="testimonial-content">
+      <div class="testimonial-quote-mark">"</div>
+      <p class="testimonial-text">Michael was a great realtor. Such a hard worker, dedicated to helping us find the perfect neighborhood, price point and home. He was available mornings, noon and night. Tireless and dedicated. Would recommend him 100%.</p>
+      <div class="testimonial-author">Michael R., Client</div>
+      <div class="testimonial-role">Purchased in Brooklyn, NY</div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES DARK -->
+<section class="services-section">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div class="services-label">Services</div>
+    <div class="services-sublabel">GRIP YOUR FUTURE</div>
+  </div>
+  <h2 class="services-heading">How FIND<br>Can Help You</h2>
+  <div class="service-item">
+    <div class="service-desc"><span class="number">1</span>Buy smarter with expert agents backed by mortgage, legal, and appraisal pros — dialed in to get you the best deal, fast. We've done this over 10,000 times, and we know what wins.</div>
+    <div class="service-name">Buy</div>
+    <div class="service-arrow"><svg viewBox="0 0 48 48" fill="none" stroke-width="2"><path d="M8 24h32M30 14l10 10-10 10"/></svg></div>
+  </div>
+  <div class="service-item">
+    <div class="service-desc"><span class="number">2</span>Sell fast, sell high. Your listing gets pro staging, strategic pricing, constant open houses, and agents who never stop working until the right buyer signs.</div>
+    <div class="service-name">Sell</div>
+    <div class="service-arrow"><svg viewBox="0 0 48 48" fill="none" stroke-width="2"><path d="M8 24h32M30 14l10 10-10 10"/></svg></div>
+  </div>
+  <div class="service-item">
+    <div class="service-desc"><span class="number">3</span>Access hidden rentals before they hit the market through agents who know every landlord in town. With decades of NYC experience, we unlock the best deals you won't find online.</div>
+    <div class="service-name">Rent</div>
+    <div class="service-arrow"><svg viewBox="0 0 48 48" fill="none" stroke-width="2"><path d="M8 24h32M30 14l10 10-10 10"/></svg></div>
+  </div>
+  <div class="services-cta">
+    <p><strong>Our certified agents guide you through every stage of real estate</strong> with expert knowledge and reliable support.</p>
+    <a href="#">Get Started with FIND <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+  </div>
+</section>
+
+<!-- BLOG -->
+<section class="blog-section">
+  <div class="blog-header">
+    <h2 class="blog-title">Latest Insights</h2>
+    <a href="#" class="blog-more">View All <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+  </div>
+  <div class="blog-grid">
+    <div class="blog-card">
+      <div class="blog-card-image"><img src="https://images.unsplash.com/photo-1574958269340-fa927503f3dd?w=700&q=80" alt="Philly" /></div>
+      <div class="blog-card-date">2026-03-09</div>
+      <h3>Philly Real Estate: A Winter Chill or a Spring Opportunity?</h3>
+      <p>Record-low listings and steady price growth define a unique February for the Philadelphia Metro.</p>
+      <a href="#" class="blog-read-more">Read More</a>
+    </div>
+    <div class="blog-card">
+      <div class="blog-card-image"><img src="https://images.unsplash.com/photo-1555952494-efd681c7e3f9?w=700&q=80" alt="NYC" /></div>
+      <div class="blog-card-date">2026-02-24</div>
+      <h3>What $1M Buys in Different NYC Neighborhoods</h3>
+      <p>A comparative look at square footage, amenities, and lifestyle across Manhattan, Brooklyn and Queens.</p>
+      <a href="#" class="blog-read-more">Read More</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div class="footer-logo">FIND</div>
+      <p>Expert agents. Real guidance. A clear path to find what's next in real estate.</p>
+    </div>
+    <div class="footer-col"><h4>Company</h4><a href="#">About</a><a href="#">Careers</a><a href="#">Press</a><a href="#">Contact</a></div>
+    <div class="footer-col"><h4>Services</h4><a href="#">Buy</a><a href="#">Sell</a><a href="#">Rent</a><a href="#">Agents</a></div>
+    <div class="footer-col"><h4>Resources</h4><a href="#">Blog</a><a href="#">Market Reports</a><a href="#">Mortgage Calculator</a><a href="#">FAQ</a></div>
+  </div>
+  <div class="footer-bottom">
+    <span>&copy; 2026 FIND Real Estate. All rights reserved.</span>
+    <span>Privacy Policy · Terms of Service</span>
+  </div>
+</footer>
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+// Navbar
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 60);
+});
+
+// ============ HERO PINNED MEGA-TIMELINE ============
+const heroTl = gsap.timeline({
+  scrollTrigger: {
+    trigger: '#heroWrapper',
+    start: 'top top',
+    end: 'bottom top',
+    scrub: 1.2,
+    pin: false,
+  }
+});
+
+// Phase 1 (0→0.2): Hero text fades up
+heroTl.to('#heroContent', {
+  y: -200,
+  opacity: 0,
+  duration: 0.15,
+  ease: 'none'
+}, 0);
+
+// Phase 1 (0→0.35): House scales up and moves to center
+heroTl.to('#heroHouse', {
+  scale: 2.2,
+  bottom: '15%',
+  duration: 0.35,
+  ease: 'none'
+}, 0);
+
+// Phase 2 (0.1→0.3): Clouds appear around house
+heroTl.to('#cloudBottom', { opacity: 1, duration: 0.15, ease: 'none' }, 0.08);
+heroTl.to('#cloudLeft',   { opacity: 1, duration: 0.15, ease: 'none' }, 0.12);
+heroTl.to('#cloudRight',  { opacity: 1, duration: 0.15, ease: 'none' }, 0.12);
+
+// Phase 2 (0.15→0.35): FIND watermark appears behind house
+heroTl.to('#findWatermark', {
+  opacity: 1,
+  duration: 0.15,
+  ease: 'none'
+}, 0.15);
+
+// Phase 3 (0.3→0.55): House continues zooming, starts fading
+heroTl.to('#heroHouse', {
+  scale: 4,
+  opacity: 0,
+  duration: 0.25,
+  ease: 'none'
+}, 0.35);
+
+// Phase 3 (0.35→0.5): Top clouds appear
+heroTl.to('#cloudTop', { opacity: 1, duration: 0.12, ease: 'none' }, 0.32);
+
+// Phase 3 (0.35→0.55): Watermark fades, clip text appears
+heroTl.to('#findWatermark', {
+  opacity: 0,
+  duration: 0.12,
+  ease: 'none'
+}, 0.4);
+
+heroTl.to('#findClip', {
+  opacity: 1,
+  duration: 0.15,
+  ease: 'none'
+}, 0.42);
+
+// Phase 4 (0.55→0.75): Clouds dissipate
+heroTl.to('#cloudBottom', { opacity: 0, y: 100, duration: 0.18, ease: 'none' }, 0.55);
+heroTl.to('#cloudLeft',   { opacity: 0, x: -100, duration: 0.18, ease: 'none' }, 0.55);
+heroTl.to('#cloudRight',  { opacity: 0, x: 100, duration: 0.18, ease: 'none' }, 0.55);
+heroTl.to('#cloudTop',    { opacity: 0, y: -100, duration: 0.18, ease: 'none' }, 0.55);
+
+// Phase 5 (0.75→1): FIND clip stays, then fades at very end
+heroTl.to('#findClip', {
+  opacity: 0,
+  scale: 1.1,
+  duration: 0.2,
+  ease: 'none'
+}, 0.8);
+
+// Sky color shift during transition
+heroTl.to('.hero-sky', {
+  background: 'linear-gradient(180deg, #c9dff2 0%, #a8c8e8 40%, #d4c5b0 80%, #f5f0eb 100%)',
+  duration: 0.5,
+  ease: 'none'
+}, 0.1);
+
+// Final sky to match next section bg
+heroTl.to('.hero-sky', {
+  opacity: 0,
+  duration: 0.2,
+  ease: 'none'
+}, 0.8);
+
+
+// ============ REST OF SITE ANIMATIONS ============
+
+// Reveal on scroll
+document.querySelectorAll('.reveal').forEach(el => {
+  ScrollTrigger.create({
+    trigger: el,
+    start: 'top 85%',
+    onEnter: () => el.classList.add('active'),
+    once: true,
+  });
+});
+
+// Chevrons stagger
+gsap.to('.chevron', {
+  opacity: 1, x: 0, duration: 0.7, stagger: 0.15, ease: 'power3.out',
+  scrollTrigger: { trigger: '.chevrons-container', start: 'top 80%' }
+});
+
+// Steps stagger
+gsap.to('.step', {
+  opacity: 1, y: 0, duration: 0.6, stagger: 0.2, ease: 'power2.out',
+  scrollTrigger: { trigger: '.rewired-right', start: 'top 75%' }
+});
+
+// Own images
+gsap.to('.own-image', {
+  opacity: 1, y: 0, duration: 0.8, stagger: 0.2, ease: 'power3.out',
+  scrollTrigger: { trigger: '.own-grid', start: 'top 80%' }
+});
+
+// Service items
+gsap.to('.service-item', {
+  opacity: 1, y: 0, duration: 0.7, stagger: 0.2, ease: 'power2.out',
+  scrollTrigger: { trigger: '.services-heading', start: 'top 70%' }
+});
+
+// Blog cards
+gsap.to('.blog-card', {
+  opacity: 1, y: 0, duration: 0.7, stagger: 0.2, ease: 'power2.out',
+  scrollTrigger: { trigger: '.blog-grid', start: 'top 80%' }
+});
+
+// Parallax on life image
+gsap.to('.life-image img', {
+  y: -40,
+  scrollTrigger: { trigger: '.life-section', start: 'top bottom', end: 'bottom top', scrub: 1 }
+});
+</script>
+
+</body>
+</html>
